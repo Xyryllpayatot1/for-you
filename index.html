@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Will you forgive me?</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg1:#6d28d9; /* purple-700 */
+      --bg2:#a78bfa; /* purple-300 */
+      --text:#f5f3ff; /* purple-50 */
+      --card:#2e1065; /* purple-950 */
+      --accent:#c4b5fd; /* purple-200 */
+    }
+    *{ box-sizing: border-box; }
+    html,body{ height:100%; margin:0; }
+    body{
+      font-family: 'Poppins', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      background: radial-gradient(1200px 800px at 20% 20%, rgba(255,255,255,.08), transparent 60%),
+                  radial-gradient(900px 700px at 80% 0%, rgba(255,255,255,.06), transparent 60%),
+                  linear-gradient(135deg, var(--bg1), var(--bg2));
+      color: var(--text);
+      display:grid; place-items:center;
+      overflow:hidden;
+    }
+    .card{
+      position:relative;
+      width:min(720px, 92vw);
+      padding:clamp(18px, 3vw, 28px);
+      border-radius:24px;
+      background: rgba(46,16,101, .75);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 20px 60px rgba(0,0,0,.35), inset 0 0 0 1px rgba(255,255,255,.08);
+      text-align:center;
+    }
+    h1{
+      margin: 10px 0 6px;
+      font-size: clamp(28px, 6vw, 48px);
+      line-height:1.05;
+      letter-spacing:.3px;
+    }
+    p.sub{
+      margin:0 0 14px;
+      opacity:.9;
+    }
+    .gif-wrap{
+      display:flex; justify-content:center; align-items:center;
+      margin: 10px auto 18px;
+    }
+    .gif-wrap img{
+      width:min(260px, 70vw);
+      height:auto;
+      border-radius:18px;
+      box-shadow: 0 12px 30px rgba(0,0,0,.35);
+      transition: transform .3s ease;
+    }
+    .gif-wrap img:hover{ transform: scale(1.03); }
+
+    .buttons-area{
+      position:relative;
+      height:160px; /* playground for the naughty button */
+      margin-top: 8px;
+      user-select:none;
+    }
+    .btn{
+      position:relative;
+      display:inline-block;
+      padding:14px 28px;
+      margin: 10px 12px;
+      border-radius:999px;
+      background: linear-gradient(180deg, var(--accent), #9b8afc);
+      color:#2e1065;
+      font-weight:800;
+      text-decoration:none;
+      border:none;
+      cursor:pointer;
+      box-shadow: 0 10px 24px rgba(0,0,0,.25);
+      transition: transform .12s ease, box-shadow .2s ease;
+    }
+    .btn:hover{ transform: translateY(-2px); box-shadow:0 14px 28px rgba(0,0,0,.28); }
+    .btn:active{ transform: translateY(0); }
+
+    .btn.no{
+      position:absolute; /* so we can move it around */
+      left:50%; top:50%; transform: translate(-50%,-50%);
+      background: linear-gradient(180deg, #e9d5ff, var(--accent));
+    }
+    .btn.yes{ background: linear-gradient(180deg, #c7a8ff, #b199ff); }
+
+    .hidden{ display:none; }
+
+    .success{
+      display:grid; place-items:center; gap:8px; min-height:260px;
+    }
+    .success h2{
+      font-size: clamp(26px, 5.5vw, 42px);
+      margin: 6px 0 0;
+    }
+    .success p{ opacity:.95; margin: 0 0 6px; }
+
+    /* Floating hearts */
+    .heart{ position:fixed; bottom:-40px; font-size:24px; opacity:.85; pointer-events:none; animation: floatUp 4.5s linear forwards; }
+    @keyframes floatUp{
+      0%{ transform: translateY(0) translateX(0) rotate(0deg); opacity:.9; }
+      100%{ transform: translateY(-120vh) translateX(var(-- drift, 40px)) rotate(20deg); opacity:0; }
+    }
+    .footer{
+      margin-top: 12px; font-size: 12px; opacity: .7;
+    }
+  </style>
+</head>
+<body>
+  <div class="card" id="card">
+    <h1>Will you forgive me?</h1>
+    <p class="sub">Pretty please? 🥺💜</p>
+    <div class="gif-wrap">
+      <!-- Cute GIF (replace src if you want a different one) -->
+      <img src="https://media.giphy.com/media/3oriO0OEd9QIDdllqo/giphy.gif" alt="cute pleading gif" loading="lazy">
+    </div>
+
+    <div class="buttons-area" id="playground">
+      <button class="btn yes" id="yesBtn" aria-label="Yes">Yes</button>
+      <button class="btn no" id="noBtn" aria-label="No">No</button>
+    </div>
+
+    <div class="success hidden" id="success">
+      <h2>I know you will forgive mee! 💜</h2>
+      <p>Thank you. I’ll make it up to you — promise!</p>
+    </div>
+
+    <div class="footer">Made with 💜 just for you</div>
+  </div>
+
+  <script>
+    const noBtn = document.getElementById('noBtn');
+    const yesBtn = document.getElementById('yesBtn');
+    const success = document.getElementById('success');
+    const playground = document.getElementById('playground');
+
+    // Helper: move the No button to a random safe spot inside the card
+    function jumpNoButton(){
+      const area = playground.getBoundingClientRect();
+      const btnRect = noBtn.getBoundingClientRect();
+      const pad = 8; // keep it inside boundaries
+      const maxX = area.width - btnRect.width - pad;
+      const maxY = area.height - btnRect.height - pad;
+      const x = Math.max(pad, Math.random() * maxX);
+      const y = Math.max(pad, Math.random() * maxY);
+      noBtn.style.left = x + 'px';
+      noBtn.style.top  = y + 'px';
+      noBtn.style.transform = 'translate(0,0)';
+    }
+
+    // Tease on hover and on click/touch
+    ['mouseover','mousedown','touchstart'].forEach(evt=>{
+      noBtn.addEventListener(evt, (e)=>{
+        e.preventDefault();
+        jumpNoButton();
+      }, {passive:false});
+    });
+
+    yesBtn.addEventListener('click', ()=>{
+      playground.classList.add('hidden');
+      success.classList.remove('hidden');
+      spawnHearts(24);
+    });
+
+    function spawnHearts(n){
+      for(let i=0;i<n;i++){
+        setTimeout(()=>{
+          const h = document.createElement('div');
+          h.className='heart';
+          h.textContent = ['💜','💟','💖','💗'][Math.floor(Math.random()*4)];
+          h.style.left = Math.random()*100 + 'vw';
+          h.style.setProperty('--drift', (Math.random()*120-60)+'px');
+          h.style.fontSize = (18 + Math.random()*28) + 'px';
+          document.body.appendChild(h);
+          setTimeout(()=>h.remove(), 5000);
+        }, i*120);
+      }
+    }
+
+    // In case viewport resizes (mobile), keep the No button inside
+    window.addEventListener('resize', ()=>{
+      noBtn.style.left = '50%';
+      noBtn.style.top = '50%';
+      noBtn.style.transform = 'translate(-50%, -50%)';
+    });
+  </script>
+</body>
+</html>
